@@ -64,6 +64,40 @@ minetest.register_craftitem("finalite:finalite_ingot", {
 	groups = {finalite=1}
 })
 
+minetest.register_craftitem("finalite:finalite_apple", {
+	description = "Finalite Apple",
+	inventory_image = "finalite_finalite_apple.png",
+	groups = {food_apple=1},
+	on_use = minetest.item_eat(20)
+})
+
+minetest.register_craftitem("finalite:finalite_shard", {
+	description = "Finalite Shard",
+	inventory_image = "finalite_finalite_shard.png",
+	groups = {finalite=1}
+})
+
+minetest.register_craft({
+		
+		output = "finalite:finalite_apple",
+		recipe = {
+			{"finalite:finalite_shard","finalite:finalite_shard","finalite:finalite_shard"},
+			{"finalite:finalite_shard","default:apple","finalite:finalite_shard"},
+			{"finalite:finalite_shard","finalite:finalite_shard","finalite:finalite_shard"},
+		}
+})
+
+minetest.register_craft({
+		
+		output = "finalite:finalite_ingot",
+		recipe = {
+			{"finalite:finalite_shard","finalite:finalite_shard","finalite:finalite_shard"},
+			{"finalite:finalite_shard","bucket:bucket_lava","finalite:finalite_shard"},
+			{"finalite:finalite_shard","finalite:finalite_shard","finalite:finalite_shard"},
+		},
+		replacements = {{"bucket:bucket_lava","bucket:bucket_empty"}}
+})
+
 local smith_table_side = "finalite_processor_side.png"
 
 local smith_table_side_cookin = "finalite_processor_side_active.png"
@@ -84,8 +118,43 @@ minetest.register_node("finalite:finalite_smithing_table_cooking", {
 		timer:set(10,0)
 	end,
 	tiles = {"finalite_processor_top_close.png","default_obsidian_brick.png",smith_table_side_cookin,smith_table_side_cookin,smith_table_side_cookin,smith_table_side_cookin},
-	groups = {not_in_creative_inventory=1}
+	groups = {not_in_creative_inventory=1},
+	sounds = default.node_sound_stone_defaults()
 	
+})
+
+
+minetest.register_node("finalite:finalite_block", {
+	description = "Finalite Block",
+	drawtype = "normal",
+	paramtype = "light",
+	light_source = 15,
+	groups = {cracky=3},
+	tiles = {"finalite_finalite_block.png"},
+	sounds = default.node_sound_metal_defaults(),
+	
+})
+
+minetest.register_craft({
+		
+		output = "finalite:finalite_block",
+		recipe = {
+			{"finalite:finalite_ingot","finalite:finalite_ingot","finalite:finalite_ingot"},
+			{"finalite:finalite_ingot","finalite:finalite_ingot","finalite:finalite_ingot"},
+			{"finalite:finalite_ingot","finalite:finalite_ingot","finalite:finalite_ingot"},
+		}
+})
+
+minetest.register_craft({
+		type = "shapeless",
+		output = "finalite:finalite_ingot 9",
+		recipe = {"finalite:finalite_block"}
+})
+
+minetest.register_craft({
+		type = "shapeless",
+		output = "finalite:finalite_shard 8",
+		recipe = {"finalite:finalite_ingot"}
 })
 
 minetest.register_node("finalite:finalite_smithing_table", {
@@ -94,7 +163,8 @@ minetest.register_node("finalite:finalite_smithing_table", {
 	paramtype = "light",
 	light_source = 4,
 	tiles = {"finalite_processor_top_open.png","default_obsidian_brick.png",smith_table_side,smith_table_side,smith_table_side,smith_table_side},
-	groups = {cracky=1},
+	groups = {cracky=3},
+	sounds = default.node_sound_stone_defaults(),
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
 		meta:set_string("infotext", "Finalite Smithing Table (0/" .. #finalite.needed_items .. " Materials)")
