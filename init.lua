@@ -1,3 +1,6 @@
+
+local S = minetest.get_translator()
+
 finalite = {}
 finalite.needed_items = {}
 
@@ -59,20 +62,20 @@ finalite.item_is_needed = function(item)
 end
 
 minetest.register_craftitem("finalite:finalite_ingot", {
-	description = "Finalite Ingot",
+	description = S("Finalite Ingot"),
 	inventory_image = "finalite_finalite_ingot.png",
 	groups = {finalite=1}
 })
 
 minetest.register_craftitem("finalite:finalite_apple", {
-	description = "Finalite Apple",
+	description = S("Finalite Apple"),
 	inventory_image = "finalite_finalite_apple.png",
 	groups = {food_apple=1},
 	on_use = minetest.item_eat(20)
 })
 
 minetest.register_craftitem("finalite:finalite_shard", {
-	description = "Finalite Shard",
+	description = S("Finalite Shard"),
 	inventory_image = "finalite_finalite_shard.png",
 	groups = {finalite=1}
 })
@@ -104,7 +107,7 @@ local smith_table_side_cookin = "finalite_processor_side_active.png"
 
 
 minetest.register_node("finalite:finalite_smithing_table_cooking", {
-	description = "Finalite Smithing Table",
+	description = S("Finalite Smithing Table (Cooking)"),
 	drawtype = "normal", --stupid minetest!!!!
 	paramtype = "light",
 	light_source = 8,
@@ -125,7 +128,7 @@ minetest.register_node("finalite:finalite_smithing_table_cooking", {
 
 
 minetest.register_node("finalite:finalite_block", {
-	description = "Finalite Block",
+	description = S("Finalite Block"),
 	drawtype = "normal",
 	paramtype = "light",
 	light_source = 15,
@@ -158,7 +161,7 @@ minetest.register_craft({
 })
 
 minetest.register_node("finalite:finalite_smithing_table", {
-	description = "Finalite Smithing Table",
+	description = S("Finalite Smithing Table"),
 	drawtype = "normal", --stupid minetest!!!!
 	paramtype = "light",
 	light_source = 4,
@@ -167,7 +170,7 @@ minetest.register_node("finalite:finalite_smithing_table", {
 	sounds = default.node_sound_stone_defaults(),
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", "Finalite Smithing Table (0/" .. #finalite.needed_items .. " Materials)")
+		meta:set_string("infotext", S("Finalite Smithing Table (@1/@2 Materials)",0,#finalite.needed_items))
 	end,
 	
 	on_rightclick = function(pos, node, puncher, itemstack, pointed_thing)
@@ -195,7 +198,7 @@ minetest.register_node("finalite:finalite_smithing_table", {
 						required_stuff = required_stuff .. finalite.needed_items[i] .. ", "
 					end
 				end
-				minetest.chat_send_player(puncher:get_player_name(),required_stuff .. "\nThe table needs the above.")
+				minetest.chat_send_player(puncher:get_player_name(),S("This table needs: ") .. required_stuff)
 				return
 			end
 		end
@@ -204,7 +207,7 @@ minetest.register_node("finalite:finalite_smithing_table", {
 			meta:set_int("has_" .. cur_thing,1)
 			held_item:take_item(1)
 		else
-			minetest.chat_send_player(puncher:get_player_name(),"This table already has that material!")
+			minetest.chat_send_player(puncher:get_player_name(),S("This table already has that material!"))
 		end
 		--minetest.chat_send_all(meta:get_int(cur_thing))
 		
@@ -216,7 +219,7 @@ minetest.register_node("finalite:finalite_smithing_table", {
 				item_amount = item_amount + 1
 			end
 		end
-		meta:set_string("infotext", "Finalite Smithing Table (" .. item_amount .. "/" .. #finalite.needed_items .. " Materials)")
+		meta:set_string("infotext", S("Finalite Smithing Table (@1/@2 Materials)",item_amount,#finalite.needed_items))
 		
 		if (item_amount == #finalite.needed_items) then
 			minetest.set_node(pos,{name="finalite:finalite_smithing_table_cooking"})
@@ -243,7 +246,7 @@ minetest.register_node("finalite:finalite_smithing_table", {
 		end
 		
 		if (item_amount ~= 0 and not digger:get_player_control().sneak) then
-			minetest.chat_send_player(digger:get_player_name(),"This table has material in it! You won't get it back if you destroy this. Please sneak while mining to confirm!")
+			minetest.chat_send_player(digger:get_player_name(),S("This table has material in it! You won't get it back if you destroy this. Please sneak while mining to confirm!"))
 			return false
 		else
 			return minetest.node_dig(pos, node, digger)
@@ -265,7 +268,7 @@ minetest.register_craft({
 
 bens_gear.add_ore({
 		internal_name = "finalite_finalite",
-		display_name = "Finalite",
+		display_name = S("Finalite"),
 		item_name = "finalite:finalite_ingot",
 		max_drop_level = 3,
 		damage_groups_any = {fleshy=8},

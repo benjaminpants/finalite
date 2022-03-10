@@ -1,0 +1,12 @@
+# textdomain: finalite
+Finalite Ingot=
+Finalite Apple=
+Finalite Shard=
+Finalite Smithing Table (Cooking)=
+Finalite Block=
+Finalite Smithing Table=
+Finalite Smithing Table (@1/@2 Materials)=
+This table needs: =
+This table already has that material!=
+This table has material in it! You won't get it back if you destroy this. Please sneak while mining to confirm!=
+Finalite=
