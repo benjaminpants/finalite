@@ -312,7 +312,9 @@ bens_gear.add_ore({
 })
 
 
-local singluarity_needed = 990
+local singluarity_needed = 1980
+
+local singularity_count = 0
 
 bens_gear.add_ore_iterate(function(data)
 	minetest.register_craftitem(":finalite:" .. data.internal_name .. "_singularity", {
@@ -320,7 +322,33 @@ bens_gear.add_ore_iterate(function(data)
 		inventory_image = "finalite_singularity.png^[multiply:#" .. data.color,
 		groups = {f_singularity=1}
 	})
+	singularity_count = singularity_count + 1
 end)
+
+minetest.register_craftitem("finalite:blackhole", {
+	description = S("Black Hole") .. "\n" .. S("Incomprehensible."),
+	short_description = S("Black Hole"),
+	inventory_image = "finalite_blackhole.png",
+	groups = {blackhole=1}
+})
+
+minetest.register_craftitem("finalite:blackhole_ingot", {
+	description = S("Black Ingot") .. "\n" .. S("Incomprehensible."),
+	short_description = S("Black Ingot"),
+	inventory_image = "finalite_black_ingot.png",
+	wield_scale = {x = 1.5, y = 1.5, z = 1},
+	groups = {ingot=1}
+})
+
+minetest.register_craft({
+		
+	output = "finalite:blackhole_ingot 4",
+	recipe = {
+		{"finalite:finalite_ingot","finalite:blackhole","finalite:finalite_ingot"},
+		{"finalite:blackhole","group:f_singularity","finalite:blackhole"},
+		{"finalite:finalite_ingot","finalite:blackhole","finalite:finalite_ingot"},
+	}
+})
 
 local function SearchForGroupOrItemInOreRegister(name)
 	if (name == "") then
@@ -428,6 +456,8 @@ minetest.register_node("finalite:compressor", {
 					minetest.set_node(pos,{name="finalite:compressor", param2 = node.param2})
 					minetest.sound_play("finalite_singularity_creation", { pos = pos, max_hear_distance = 16, gain = 1, })
 					return itemstack
+				else
+					minetest.sound_play("finalite_singularity_add", { pos = pos, max_hear_distance = 16, gain = 0.75, })
 				end
 			else
 				return itemstack
@@ -455,4 +485,164 @@ minetest.register_node("finalite:compressor", {
 			return minetest.node_dig(pos, node, digger)
 		end
 	end
+})
+
+minetest.register_node("finalite:singularity_merger", {
+	description = S("Singularity Merger"),
+	drawtype = "normal", --stupid minetest!!!!
+	paramtype = "light",
+	paramtype2 = "facedir",
+	light_source = 4,
+	tiles = {"finalite_finalite_block.png^finalite_hole.png","finalite_finalite_block.png","finalite_finalite_block.png^finalite_bl_side.png"},
+	groups = {cracky=3},
+	sounds = default.node_sound_stone_defaults(),
+	on_construct = function(pos)
+		local meta = minetest.get_meta(pos)
+		meta:set_int("item_count", 0)
+		meta:set_string("infotext", S("Singularity Merger (@1/@2)", 0, singularity_count))
+	end,
+
+	on_rightclick = function(pos, node, puncher, itemstack, pointed_thing)
+		if (puncher == nil) then
+			return
+		end
+		if (not minetest.is_player(puncher)) then
+			return
+		end
+		local meta = minetest.get_meta(pos)
+		
+		local held_item = minetest.registered_items[itemstack:get_name()]
+
+		if (held_item == nil) then
+			return itemstack
+		end
+
+		if (held_item.groups["f_singularity"] == 1) then
+			if (meta:get_int("has_" .. held_item.description) ~= 1) then
+				meta:set_int("item_count", meta:get_int("item_count") + 1)
+				meta:set_int("has_" .. held_item.description, 1)
+				meta:set_string("infotext", S("Singularity Merger (@1/@2)", meta:get_int("item_count"), singularity_count))
+				itemstack:take_item(1)
+				if (meta:get_int("item_count") == singularity_count) then
+					minetest.add_item({x = pos.x, y = pos.y + 1, z = pos.z},"finalite:blackhole")
+					local node = minetest.get_node(pos)
+					minetest.set_node(pos,{name="finalite:singularity_merger", param2 = node.param2})
+					minetest.sound_play("finalite_blackhole_creation", { pos = pos, max_hear_distance = 16, gain = 0.9, })
+				end
+				return itemstack
+			end
+		end
+
+		return itemstack
+
+	end,
+
+	on_dig = function(pos, node, digger)
+		if (digger == nil) then
+			return minetest.node_dig(pos, node, digger)
+		end
+		if (digger:get_player_name() == "") then
+			return minetest.node_dig(pos, node, digger)
+		end
+		local meta = minetest.get_meta(pos)
+		local item_amount = meta:get_int("item_count")
+		
+		if (item_amount ~= 0 and not digger:get_player_control().sneak) then
+			minetest.chat_send_player(digger:get_player_name(),S("This Singulartor Merger has material in it! You won't get it back if you destroy this. Please sneak while mining to confirm!"))
+			return false
+		else
+			return minetest.node_dig(pos, node, digger)
+		end
+	end
+})
+
+minetest.register_craft({
+		
+	output = "finalite:compressor",
+	recipe = {
+		{"finalite:finalite_block","","finalite:finalite_block"},
+		{"default:mese","","default:mese"},
+		{"finalite:finalite_block","finalite:finalite_block","finalite:finalite_block"},
+	}
+})
+
+minetest.register_craft({
+		
+	output = "finalite:singularity_merger",
+	recipe = {
+		{"finalite:finalite_block","group:f_singularity","finalite:finalite_block"},
+		{"finalite:finalite_block","group:f_singularity","finalite:finalite_block"},
+		{"finalite:finalite_block","finalite:finalite_block","finalite:finalite_block"},
+	}
+})
+
+
+bens_gear.add_ore({
+	internal_name = "finalite_blackingot",
+	display_name = S("Black Ingot"),
+	item_name = "finalite:blackhole_ingot",
+	max_drop_level = 3,
+	damage_groups_any = {fleshy=20},
+	damage_groups_sword = {fleshy=100},
+	damage_groups_axe = {fleshy=80},
+	full_punch_interval = 0.2,
+	uses = 3000,
+	flammable = false,
+	groupcaps = { --the groupcaps for the tool. durability is typically used instead of "uses" so there is no need to define it
+		crumbly = {times={[1]=0.1, [2]=0.07, [3]=0.045}, maxlevel=3},
+		cracky = {times={[1]=0.1, [2]=0.07, [3]=0.045}, maxlevel=3},
+		choppy = {times={[1]=0.1, [2]=0.07, [3]=0.045}, maxlevel=3},
+		snappy = {times={[1]=0.1, [2]=0.07, [3]=0.045}, maxlevel=3},
+	
+	},
+	tool_list = {
+	--"pickaxe"
+	},
+	tool_list_whitelist = false, --if this is true, then tool_list should act like a whitelist, otherwise, it'll act like a blacklist
+	color = "000000",
+	tool_textures = {
+		default_alias = "metal", --what to append to the end of the default texture name, example: "bens_gear_axe_" would become "bens_gear_axe_metal"
+		--pickaxe = {"bens_gear_pick_wood.png",true} --use a custom texture for pickaxes, you can add more for other tools
+	},
+	misc_data = {magic=50}, --here you can store various other weird stats for other mods to utilize, the only stat that is officially supported at the moment is "magic"
+	additional_functions = { --a list of additional functions that'll be called upon certain conditions. This is here so that custom tools don't have to have support manually added.
+		node_mined = nil,
+		tool_destroyed = nil,
+		tool_attempt_place = nil,
+	},
+	pre_finalization_function = nil --this function should be called RIGHT BEFORE the tool/item/whatever gets created, so that the material can add its own custom handling/data
+	--it should be called like this: func(tool_id,data)
+})
+
+minetest.register_craftitem("finalite:infinite_range", {
+	description = S("Infinite Range Upgrade") .. "\n" .. S("Bend space time itself and get close to infinite mining range."),
+	short_description = S("Infinite Range Upgrade"),
+	inventory_image = "finalite_bh_upgrade_small.png"
+})
+
+minetest.register_craft({
+		
+	output = "finalite:infinite_range",
+	recipe = {
+		{"finalite:default_mese_singularity","finalite:default_diamond_singularity","finalite:default_mese_singularity"},
+		{"finalite:default_diamond_singularity","finalite:blackhole","finalite:default_diamond_singularity"},
+		{"finalite:default_mese_singularity","finalite:default_diamond_singularity","finalite:default_mese_singularity"},
+	}
+})
+
+
+bens_gear.add_charm({
+	item_name = "finalite:infinite_range", --charms use already existing items.
+	charm_name = "finalite_infinite", --for creating IDs
+	exclusive = false, --if false, mods are allowed to use this charm even if not explicitly supported. (EX: a super axe using an axe charm if this is off, if this is on then the axe won't use this charm)
+	valid_tools = { --the charm can only be applied to the following tools
+		pickaxe = "finalite_bh_upgrade.png",
+		axe = "finalite_bh_upgrade.png",
+		shovel = "finalite_bh_upgrade.png",
+		hoe = "finalite_bh_upgrade.png"
+	},
+	charm_function = function(tool_type,tool_data,ore_data,rod_data)
+		tool_data.range = 9999
+	end
+	
 })
