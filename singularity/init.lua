@@ -32,7 +32,6 @@ minetest.register_craftitem("singularity:blackhole_ingot", {
 	description = S("Black Ingot") .. "\n" .. S("Incomprehensible."),
 	short_description = S("Black Ingot"),
 	inventory_image = "singularity_black_ingot.png",
-	wield_scale = {x = 1.5, y = 1.5, z = 1},
 	groups = {ingot=1}
 })
 
