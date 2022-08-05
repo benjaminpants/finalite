@@ -4,6 +4,10 @@ local singluarity_needed = 1980
 
 local singularity_count = 0
 
+singularity = {}
+
+singularity.created_singularities = {}
+
 minetest.register_craftitem("singularity:singularity_examp", {
     description = S("A Singularity\nYou can't obtain this."),
     inventory_image = "singularity_singularity.png",
@@ -17,6 +21,7 @@ bens_gear.add_ore_iterate(function(data)
 			inventory_image = "singularity_singularity.png^[multiply:#" .. data.color,
 			groups = {f_singularity=1}
 		})
+        singularity.created_singularities[#singularity.created_singularities + 1] = "singularity:" .. data.internal_name .. "_singularity"
 		singularity_count = singularity_count + 1
 	end
 end)
@@ -208,14 +213,28 @@ minetest.register_node("singularity:singularity_merger", {
 		
 		local held_item = minetest.registered_items[itemstack:get_name()]
 
+        local needs = ""
+
+        for i=1, #singularity.created_singularities do
+            if (meta:get_int("has_" .. singularity.created_singularities[i]) ~= 1) then
+                needs = needs .. singularity.created_singularities[i] .. ","
+            end
+            if (i % 8) == 0 then
+                needs = needs .. "\n"
+            end
+        end
+
+        needs = S("Remaining Singularities:@1",needs)
+
 		if (held_item == nil) then
+            minetest.chat_send_player(puncher:get_player_name(),needs)
 			return itemstack
 		end
 
 		if (held_item.groups["f_singularity"] == 1) then
-			if (meta:get_int("has_" .. held_item.description) ~= 1) then
+			if (meta:get_int("has_" .. itemstack:get_name()) ~= 1) then
 				meta:set_int("item_count", meta:get_int("item_count") + 1)
-				meta:set_int("has_" .. held_item.description, 1)
+				meta:set_int("has_" .. itemstack:get_name(), 1)
 				meta:set_string("infotext", S("Singularity Merger (@1/@2)", meta:get_int("item_count"), singularity_count))
 				itemstack:take_item(1)
 				if (meta:get_int("item_count") == singularity_count) then
@@ -225,8 +244,12 @@ minetest.register_node("singularity:singularity_merger", {
 					minetest.sound_play("singularity_blackhole_creation", { pos = pos, max_hear_distance = 16, gain = 0.9, })
 				end
 				return itemstack
-			end
-		end
+			else
+                minetest.chat_send_player(puncher:get_player_name(),needs)
+            end
+		else
+            minetest.chat_send_player(puncher:get_player_name(),needs)
+        end
 
 		return itemstack
 
